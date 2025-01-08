@@ -1,0 +1,97 @@
+<html>
+<head>
+	<style>
+		div {
+			padding-bottom: 10px;
+			padding-left: 20px;
+			padding-right: 20px;
+		}
+		.textTitle {
+			font-weight: bold;
+		}
+	</style>
+</head>
+<body>
+	<div class="textTitle">
+		How to run this
+	</div>
+	<div>
+		This page uses the <a href="https://developer.chrome.com/docs/ai/summarizer-api">Chrome Summarizer API</a>,
+		which is currently only available to certain websites and devices. To load/modify this page:
+		<ol>
+		<li>Go to chrome://flags/#optimization-guide-on-device-model and select "Enabled BypassPerfRequirement."</li>
+		<li>Go to chrome://flags/#summarization-api-for-gemini-nano and select "Enabled."</li>
+		<li>Restart Chrome.</li>
+		<li>Load this HTML file as a local file (not as a hosted github page).</li>
+	</ol>
+	</div>
+	<div class="textTitle">
+		The Homework Machine by Shel Silverstein
+	</div>
+	<div id="textinput">
+		The Homework Machine, oh the Homework Machine,<br />
+		Most perfect contraption that's ever been seen.<br />
+		Just put in your homework, then drop in a dime,<br />
+		Snap on the switch, and in ten seconds' time,<br />
+		Your homework comes out, quick and clean as can be.<br />
+		Here it is--"nine plus four?" and the answer is "three."<br />
+		Three?<br />
+		Oh me...<br />
+		I guess it's not as perfect<br />
+		As I thought it would be.
+	</div>
+	
+	<div class="textTitle">Teaser summary</div>
+	<div id="textoutput-Teaser">[running]</div>
+
+	<div class="textTitle">Key points summary</div>
+	<div id="textoutput-KeyPoints">[running]</div>
+
+
+	<script>
+		async function runSummarizer() {
+			const teaserOptions = {
+				sharedContext: 'The input is a Shel Silverstein poem',
+				format: 'plain-text',
+				type: 'teaser'
+			};
+			const keyPointsOptions = {
+				sharedContext: 'The input is a Shel Silverstein poem',
+				format: 'plain-text',
+				type: 'key-points'
+			};
+			
+			const available = (await self.ai.summarizer.capabilities()).available;		
+			let summarizer;
+			if (available === 'no') {
+			  console.log('Something has gone wrong');
+			  return;
+			}
+			if (available === 'readily') {
+				console.log('Ready immediately');
+			  summarizer = await window.self.ai.summarizer.create(teaserOptions);
+			} else {
+				console.log('Need to download');
+				summarizer = await window.self.ai.summarizer.create(teaserOptions);
+			  await summarizer.ready;	
+			}
+			
+			const poemText = document.getElementById('textinput').innerText;
+			console.log('Poem text (input):\n' + poemText);
+	
+			const summaryTeaser = await summarizer.summarize(poemText);
+			console.log('Teaser (output):\n' + summaryTeaser);
+			document.getElementById('textoutput-Teaser').innerText = summaryTeaser;
+
+			summarizer = await window.self.ai.summarizer.create(keyPointsOptions);
+			const summaryKeyPoints = await summarizer.summarize(poemText);
+			console.log('Key points (output):\n' + summaryKeyPoints);
+			document.getElementById('textoutput-KeyPoints').innerText = summaryKeyPoints;
+		}
+		runSummarizer();
+	</script>
+
+
+
+</body>
+</html>
